@@ -1656,12 +1656,16 @@ static __always_inline int rev_nodeport_lb4(struct __ctx_buff *ctx, int *ifindex
 			}
 		}
 #endif
+
+
+#if (__ctx_is == __ctx_skb)
 	if (ETH_HLEN == 0) {
-		ret = ctx_adjust_room(ctx, 14, BPF_ADJ_ROOM_MAC, 0);
+		ret = skb_change_head(ctx, 14, 0);
 		if (ret != 0) {
 			return DROP_FRAG_NOSUPPORT;
 		}
 	}
+#endif
 
 	if (!revalidate_data_eth(ctx, &data, &data_end, &ip4, 14)) {
 		return DROP_FRAG_NOSUPPORT;
@@ -1698,7 +1702,12 @@ static __always_inline int rev_nodeport_lb4(struct __ctx_buff *ctx, int *ifindex
 				return DROP_WRITE_ERROR;
 		}
 
-		cilium_dbg_capture(ctx, DBG_CAPTURE_DELIVERY, 300 + NATIVE_DEV_IFINDEX);
+		if (ETH_HLEN == 0) {
+			if (eth_store_proto_aligned(ctx, bpf_htons(ETH_P_IP), 0) < 0)
+				return DROP_WRITE_ERROR;
+			cilium_dbg_capture(ctx, DBG_CAPTURE_DELIVERY, 400 + *ifindex);
+		}
+
 	} else {
 		if (!bpf_skip_recirculation(ctx)) {
 			bpf_skip_nodeport_set(ctx);

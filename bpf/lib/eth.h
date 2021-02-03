@@ -110,4 +110,11 @@ static __always_inline int eth_store_daddr(struct __ctx_buff *ctx,
 #endif
 }
 
+static __always_inline int eth_store_proto_aligned(struct __ctx_buff *ctx,
+						   const __u16 proto, int off)
+{
+	__u16 tmp = proto;
+	return ctx_store_bytes(ctx, off + ETH_ALEN + ETH_ALEN, &tmp, 2, 0);
+}
+
 #endif /* __LIB_ETH__ */
