@@ -11,8 +11,9 @@ set -eu
 
 # Add a fuzz dependency because OSS-Fuzz rewrites the testing types to ones compatible with libFuzzer which is the fuzzing engine used by OSS-Fuzz:
 printf "package policy\nimport _ \"github.com/AdamKorcz/go-118-fuzz-build/testing\"\n" > $SRC/cilium/pkg/policy/registerfuzzdep.go
-
+echo "go mod tidy"
 go mod tidy && go mod vendor
+
 mv $SRC/cilium/pkg/policy/l4_filter_test.go $SRC/cilium/pkg/policy/l4_filter_test_fuzz.go
 mv $SRC/cilium/pkg/policy/policy_test.go $SRC/cilium/pkg/policy/policy_test_fuzz.go
 mv $SRC/cilium/pkg/policy/rule_test.go $SRC/cilium/pkg/policy/rule_test_fuzz.go
